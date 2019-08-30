@@ -5,12 +5,24 @@ import lombok.Getter;                  // 모든 필드의 Getter를 만든다
 import lombok.RequiredArgsConstructor; // equals()와 hashcode() 메서드를 만든다
 import lombok.ToString;                // 해당 클래스의 toString() 메서드를 읽기 쉽게 만든다
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+
 // 애플리케이션에서 곱셈을 나타내는 클래스
 @RequiredArgsConstructor
 @Getter
 @ToString
 @EqualsAndHashCode
+@Entity
 public final class Multiplication {
+
+    // id
+    @Id
+    @GeneratedValue
+    @Column(name = "MULTIPLICATION_ID")
+    private Long id;
 
     // 인수
     private final int factorA;
