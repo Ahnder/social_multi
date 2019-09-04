@@ -1,16 +1,18 @@
 package microservices.book.multiplication.domain;
 
-import lombok.EqualsAndHashCode;       // 모든 상수 필드를 갖는 생성자를 만든다
-import lombok.Getter;                  // 모든 필드의 Getter를 만든다
-import lombok.RequiredArgsConstructor; // equals()와 hashcode() 메서드를 만든다
-import lombok.ToString;                // 해당 클래스의 toString() 메서드를 읽기 쉽게 만든다
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
-// 애플리케이션에서 곱셈을 나타내는 클래스
+/**
+ * 애플리케이션에서 곱셈을 나타내는 클래스 (a * b)
+ */
 @RequiredArgsConstructor
 @Getter
 @ToString
@@ -18,18 +20,17 @@ import javax.persistence.Id;
 @Entity
 public final class Multiplication {
 
-    // id
-    @Id
-    @GeneratedValue
-    @Column(name = "MULTIPLICATION_ID")
-    private Long id;
+  @Id
+  @GeneratedValue
+  @Column(name = "MULTIPLICATION_ID")
+  private Long id;
 
-    // 인수
-    private final int factorA;
-    private final int factorB;
+  // 두 인수
+  private final int factorA;
+  private final int factorB;
 
-    // JSON (역)직렬화를 위한 빈 생성자
-    Multiplication() {
-        this(0, 0);
-    }
+  // JSON/JPA 를 위한 빈 생성자
+  Multiplication() {
+    this(0, 0);
+  }
 }

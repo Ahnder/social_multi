@@ -8,22 +8,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 곱셈 애플리케이션의 REST API를 구현한 클래스
+ * 곱셈 애플리케이션의 REST API 를 구현한 클래스
  */
 @RestController
 @RequestMapping("/multiplications")
-public class MultiplicationController {
+final class MultiplicationController {
 
-    private final MultiplicationService multiplicationService;
+  private final MultiplicationService multiplicationService;
 
-    @Autowired
-    public MultiplicationController(final MultiplicationService multiplicationService) {
-        this.multiplicationService = multiplicationService;
-    }
+  @Autowired
+  public MultiplicationController(final MultiplicationService multiplicationService) {
+    this.multiplicationService = multiplicationService;
+  }
 
-    @GetMapping("/random")
-    Multiplication getRandomMultiplication() {
-        return multiplicationService.createRandomMultiplication();
-    }
+  @GetMapping("/random")
+  Multiplication getRandomMultiplication() {
+    return multiplicationService.createRandomMultiplication();
+  }
 
 }

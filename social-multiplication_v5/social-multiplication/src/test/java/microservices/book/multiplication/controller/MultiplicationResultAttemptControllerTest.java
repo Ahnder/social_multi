@@ -22,8 +22,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -31,82 +31,101 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @WebMvcTest(MultiplicationResultAttemptController.class)
 public class MultiplicationResultAttemptControllerTest {
 
-    @MockBean
-    private MultiplicationService multiplicationService;
+  @MockBean
+  private MultiplicationService multiplicationService;
 
-    @Autowired
-    private MockMvc mvc;
+  @Autowired
+  private MockMvc mvc;
 
-    // 이 객체는 initFields() 메서드를 이용해 자동으로 초기화
-    private JacksonTester<MultiplicationResultAttempt> jsonResultAttempt;
-    private JacksonTester<List<MultiplicationResultAttempt>> jsonResultAttemptList;
+  // 이 객체는 initFields() 메소드를 이용해 자동으로 초기화
+  private JacksonTester<MultiplicationResultAttempt> jsonResultAttempt;
+  private JacksonTester<List<MultiplicationResultAttempt>> jsonResultAttemptList;
 
-    @Before
-    public void setUp() {
-        JacksonTester.initFields(this, new ObjectMapper());
-    }
+  @Before
+  public void setup() {
+    JacksonTester.initFields(this, new ObjectMapper());
+  }
 
-    @Test
-    public void postResultReturnCorrect() throws Exception {
-        genericParameterizedTest(true);
-    }
+  @Test
+  public void postResultReturnCorrect() throws Exception {
+    genericParameterizedTest(true);
+  }
 
-    @Test
-    public void postResultReturnNotCorrect() throws Exception {
-        genericParameterizedTest(false);
-    }
+  @Test
+  public void postResultReturnNotCorrect() throws Exception {
+    genericParameterizedTest(false);
+  }
 
-    @Test
-    public void getUserStats() throws Exception {
-        // given
-        User user = new User("john_doe");
-        Multiplication multiplication = new Multiplication(50, 70);
-        MultiplicationResultAttempt attempt =
-                new MultiplicationResultAttempt(user, multiplication, 3500, true);
-        List<MultiplicationResultAttempt> recentAttempts = Lists.newArrayList(attempt, attempt);
+  void genericParameterizedTest(final boolean correct) throws Exception {
+    // given (지금 서비스를 테스트하는 것이 아님)
+    given(multiplicationService
+            .checkAttempt(any(MultiplicationResultAttempt.class)))
+            .willReturn(correct);
+    User user = new User("john");
+    Multiplication multiplication = new Multiplication(50, 70);
+    MultiplicationResultAttempt attempt = new MultiplicationResultAttempt(
+            user, multiplication, 3500, correct);
 
-        given(multiplicationService
-                .getStatsForUser("john_doe"))
-                .willReturn(recentAttempts);
+    // when
+    MockHttpServletResponse response = mvc.perform(
+            post("/results").contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonResultAttempt.write(attempt).getJson()))
+            .andReturn().getResponse();
 
-        // when
-        MockHttpServletResponse response = mvc.perform(get("/results")
-                .param("alias", "john_doe"))
-                .andReturn().getResponse();
+    // then
+    assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    assertThat(response.getContentAsString()).isEqualTo(
+            jsonResultAttempt.write(
+                    new MultiplicationResultAttempt(attempt.getUser(),
+                            attempt.getMultiplication(),
+                            attempt.getResultAttempt(),
+                            correct)
+            ).getJson());
+  }
 
-        // then
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-        assertThat(response.getContentAsString())
-                .isEqualTo(jsonResultAttemptList.write(recentAttempts).getJson());
-    }
+  @Test
+  public void getUserStats() throws Exception {
+    // given
+    User user = new User("john_doe");
+    Multiplication multiplication = new Multiplication(50, 70);
+    MultiplicationResultAttempt attempt = new MultiplicationResultAttempt(
+            user, multiplication, 3500, true);
+    List<MultiplicationResultAttempt> recentAttempts = Lists.newArrayList(attempt, attempt);
+    given(multiplicationService
+            .getStatsForUser("john_doe"))
+            .willReturn(recentAttempts);
 
-    void genericParameterizedTest(final boolean correct) throws Exception {
-        // given (지금 서비스를 테스트하는 것이 아님)
-        given(multiplicationService
-                .checkAttempt(any(MultiplicationResultAttempt.class)))
-                .willReturn(correct);
+    // when
+    MockHttpServletResponse response = mvc.perform(
+            get("/results").param("alias", "john_doe"))
+            .andReturn().getResponse();
 
-        User user = new User("John");
-        Multiplication multiplication = new Multiplication(50, 70);
-        MultiplicationResultAttempt attempt = new MultiplicationResultAttempt(user,
-                multiplication, 3500, correct);
+    // then
+    assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    assertThat(response.getContentAsString()).isEqualTo(
+            jsonResultAttemptList.write(
+                    recentAttempts
+            ).getJson());
+  }
 
-        // when
-        MockHttpServletResponse response = mvc.perform(post("/results")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonResultAttempt.write(attempt).getJson()))
-                .andReturn().getResponse();
+  @Test
+  public void getResultByIdTest() throws Exception {
+    // given
+    User user = new User("john_doe");
+    Multiplication multiplication = new Multiplication(50, 70);
+    MultiplicationResultAttempt attempt = new MultiplicationResultAttempt(
+            user, multiplication, 3500, true);
+    given(multiplicationService.getResultById(4L)).willReturn(attempt);
 
-        // then
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-        assertThat(response.getContentAsString()).isEqualTo(
-                jsonResultAttempt.write(
-                        new MultiplicationResultAttempt(
-                                attempt.getUser(),
-                                attempt.getMultiplication(),
-                                attempt.getResultAttempt(),
-                                correct)
-                ).getJson());
-    }
+    // when
+    MockHttpServletResponse response = mvc.perform(
+            get("/results/4"))
+            .andReturn().getResponse();
+
+    // then
+    assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+    assertThat(response.getContentAsString()).isEqualTo(
+            jsonResultAttempt.write(attempt).getJson());
+  }
 
 }
